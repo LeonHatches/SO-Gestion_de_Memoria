@@ -79,3 +79,10 @@ class Gestor:
     def leer(self, proceso, nombre, desplazamiento):
         fisica = self.resolver_acceso(proceso, nombre, desplazamiento, "R")
         return fisica, self.ram.celdas[fisica].valor
+
+    def escribir(self, proceso, nombre, desplazamiento, valor):
+        fisica = self.resolver_acceso(proceso, nombre, desplazamiento, "W")
+        if type(valor) is not int:
+            raise ValueError("Escribe un valor entero.")
+        self.ram.celdas[fisica].valor = valor
+        return fisica
