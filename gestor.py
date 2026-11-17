@@ -4,12 +4,14 @@ from dataclasses import dataclass
 from string import ascii_uppercase
 
 NOMBRES_SEGMENTOS = ("codigo", "datos", "heap", "stack")
+PERMISOS = {"codigo": "R", "datos": "RW", "heap": "RW", "stack": "RW"}
 
 
 @dataclass
 class Segmento:
     base: int
     tamano: int
+    permisos: str
 
     def direccion(self, desplazamiento):
         if type(desplazamiento) is not int or not 0 <= desplazamiento < self.tamano:
@@ -38,7 +40,7 @@ class Gestor:
                 tamano = tamanos[nombre]
                 base = self.ram.buscar_hueco(tamano)
                 self.ram.ocupar(base, tamano, proceso)
-                segmentos[nombre] = Segmento(base, tamano)
+                segmentos[nombre] = Segmento(base, tamano, PERMISOS[nombre])
         except ValueError:
             for segmento in segmentos.values():
                 self.ram.liberar(segmento.base, segmento.tamano)
@@ -66,3 +68,29 @@ class Gestor:
         """Convierte un desplazamiento válido en una dirección de RAM."""
         segmento = self.obtener_segmento(proceso, nombre)
         return segmento.direccion(desplazamiento)
+
+    def resolver_acceso(self, proceso, nombre, desplazamiento, operacion):
+        segmento = self.obtener_segmento(proceso, nombre)
+        fisica = segmento.direccion(desplazamiento)
+        if operacion not in ("R", "W") or operacion not in segmento.permisos:
+            raise ValueError(f"{proceso}/{nombre} tiene permisos {segmento.permisos}.")
+        return fisica
+
+    def leer(self, proceso, nombre, desplazamiento):
+        fisica = self.resolver_acceso(proceso, nombre, desplazamiento, "R")
+        return fisica, self.ram.celdas[fisica].valor
+
+    def escribir(self, proceso, nombre, desplazamiento, valor):
+        fisica = self.resolver_acceso(proceso, nombre, desplazamiento, "W")
+        if type(valor) is not int:
+            raise ValueError("Escribe un valor entero.")
+        self.ram.celdas[fisica].valor = valor
+        return fisica
+
+    def compactar(self):
+        segmentos = [segmento for tabla in self.procesos.values() for segmento in tabla.values()]
+        bloques = sorted((segmento.base, segmento.tamano) for segmento in segmentos)
+        nuevas_bases = self.ram.compactar(bloques)
+        for segmento in segmentos:
+            segmento.base = nuevas_bases[segmento.base]
+        return sum(antes != despues for antes, despues in nuevas_bases.items())
