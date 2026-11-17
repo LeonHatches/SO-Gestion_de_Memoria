@@ -75,3 +75,7 @@ class Gestor:
         if operacion not in ("R", "W") or operacion not in segmento.permisos:
             raise ValueError(f"{proceso}/{nombre} tiene permisos {segmento.permisos}.")
         return fisica
+
+    def leer(self, proceso, nombre, desplazamiento):
+        fisica = self.resolver_acceso(proceso, nombre, desplazamiento, "R")
+        return fisica, self.ram.celdas[fisica].valor
