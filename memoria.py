@@ -56,3 +56,15 @@ class Memoria:
 
     def liberar(self, base, tamano):
         self.celdas[base:base + tamano] = [None] * tamano
+
+    def compactar(self, bloques):
+        """Reubica los bloques ordenados por base y devuelve sus nuevas bases."""
+        celdas = [None] * self.capacidad
+        nuevas_bases = {}
+        destino = 0
+        for base, tamano in bloques:
+            celdas[destino:destino + tamano] = self.celdas[base:base + tamano]
+            nuevas_bases[base] = destino
+            destino += tamano
+        self.celdas = celdas
+        return nuevas_bases

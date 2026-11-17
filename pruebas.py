@@ -69,3 +69,78 @@ class PruebasGestor(unittest.TestCase):
             with self.subTest(posicion=invalida):
                 with self.assertRaises(ValueError):
                     self.gestor.traducir("A", "datos", invalida)
+
+    def test_codigo_es_de_solo_lectura(self):
+        self.gestor.cargar("A", tamanos())
+        self.assertEqual(self.gestor.leer("A", "codigo", 0), (0, 0))
+        with self.assertRaisesRegex(ValueError, "permisos R"):
+            self.gestor.escribir("A", "codigo", 0, 61)
+        self.assertEqual(self.gestor.leer("A", "codigo", 0), (0, 0))
+
+    def test_escribir_datos_no_modifica_otro_proceso(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.cargar("B", tamanos())
+        self.assertEqual(self.gestor.escribir("A", "datos", 1, 42), 3)
+        self.assertEqual(self.gestor.leer("A", "datos", 1), (3, 42))
+        self.assertEqual(self.gestor.leer("B", "datos", 1), (11, 0))
+
+    def test_un_desbordamiento_no_modifica_el_segmento_vecino(self):
+        self.gestor.cargar("A", tamanos())
+        with self.assertRaisesRegex(ValueError, "fuera del segmento"):
+            self.gestor.escribir("A", "datos", 2, 42)
+        self.assertEqual(self.gestor.leer("A", "heap", 0), (4, 0))
+
+    def test_compactar_une_huecos_y_preserva_el_acceso_logico(self):
+        for proceso in "ABC":
+            self.gestor.cargar(proceso, tamanos())
+        self.gestor.escribir("C", "datos", 1, 42)
+        self.gestor.terminar("B")
+        mapa = self.gestor.ram.mapa()
+        self.assertEqual(mapa, "AAAAAAAA........CCCCCCCC........")
+        self.assertEqual(self.gestor.ram.libres(), 16)
+        self.assertEqual(self.gestor.ram.mayor_hueco(), 8)
+        with self.assertRaises(ValueError):
+            self.gestor.cargar("D", tamanos(datos=10))
+        self.assertEqual(self.gestor.ram.mapa(), mapa)
+        self.assertEqual(self.gestor.leer("C", "datos", 1), (19, 42))
+
+        self.assertEqual(self.gestor.compactar(), 4)
+        self.assertEqual(self.gestor.ram.mayor_hueco(), 16)
+        self.assertEqual(self.gestor.leer("C", "datos", 1), (11, 42))
+        self.gestor.cargar("D", tamanos(datos=10))
+        self.assertEqual(self.gestor.ram.libres(), 0)
+
+    def test_compactar_una_ram_vacia(self):
+        self.assertEqual(self.gestor.compactar(), 0)
+        self.assertEqual(self.gestor.ram.mayor_hueco(), 32)
+
+    def test_recupera_el_proceso_con_los_mismos_valores_en_otra_base(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.escribir("A", "datos", 1, 57)
+        self.gestor.enviar("A")
+        self.assertEqual(self.gestor.ram.libres(), 32)
+        with self.assertRaises(ValueError):
+            self.gestor.cargar("A", tamanos())
+        self.gestor.cargar("B", tamanos())
+        self.gestor.recuperar("A")
+        self.assertEqual(self.gestor.leer("A", "datos", 1), (11, 57))
+        self.assertNotIn("A", self.gestor.intercambio)
+
+    def test_recuperacion_sin_espacio_conserva_el_proceso_en_intercambio(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.escribir("A", "datos", 1, 55)
+        self.gestor.enviar("A")
+        self.gestor.cargar("B", tamanos(datos=25))
+        antes = self.gestor.ram.mapa()
+        with self.assertRaises(ValueError):
+            self.gestor.recuperar("A")
+        self.assertEqual(self.gestor.ram.mapa(), antes)
+        self.assertNotIn("A", self.gestor.procesos)
+        self.assertEqual(self.gestor.intercambio["A"]["datos"], [0, 55])
+
+    def test_terminar_un_proceso_suspendido_libera_su_identificador(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.enviar("A")
+        self.gestor.terminar("A")
+        self.gestor.cargar("A", tamanos())
+        self.assertNotIn("A", self.gestor.intercambio)

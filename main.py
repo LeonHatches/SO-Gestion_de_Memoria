@@ -16,13 +16,16 @@ def ver_estado(gestor):
     print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
     print("Cada letra identifica un proceso.")
     if gestor.procesos:
-        print("  PID  Segmento  Base  Tamaño  Rango lógico")
+        print("  PID  Segmento  Base  Tamaño  Rango lógico  Permisos")
         for proceso, segmentos in sorted(gestor.procesos.items()):
             for nombre, segmento in segmentos.items():
+                rango = f"0-{segmento.tamano - 1}"
                 print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  "
-                      f"{segmento.tamano:>6}  0-{segmento.tamano - 1}")
+                      f"{segmento.tamano:>6}  {rango:<12}  {segmento.permisos}")
     else:
         print("No hay procesos en RAM.")
+    suspendidos = ", ".join(sorted(gestor.intercambio)) or "ninguno"
+    print(f"En almacenamiento simulado: {suspendidos}.")
 
 
 def cargar_proceso(gestor):
@@ -35,32 +38,67 @@ def cargar_proceso(gestor):
     print(f"Proceso {proceso} cargado.")
 
 
-def pedir_direccion():
+def pedir_direccion(gestor):
     proceso = input("Proceso: ").strip().upper()
-    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower()
+    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower().replace("ó", "o")
+    segmento = gestor.obtener_segmento(proceso, nombre)
+    print(f"{proceso}/{nombre}: rango 0-{segmento.tamano - 1}, permisos {segmento.permisos}.")
     desplazamiento = int(input("Posición lógica: "))
     return proceso, nombre, desplazamiento
 
 
 def consultar_direccion(gestor):
-    proceso, nombre, desplazamiento = pedir_direccion()
-    fisica = gestor.traducir(proceso, nombre, desplazamiento)
-    base = gestor.obtener_segmento(proceso, nombre).base
-    print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
+    modo = input("CPU: [T]raducir, [L]eer o [E]scribir: ").strip().lower()
+    if modo not in ("t", "l", "e"):
+        raise ValueError("Elige T, L o E.")
+    proceso, nombre, desplazamiento = pedir_direccion(gestor)
+    if modo == "t":
+        fisica = gestor.traducir(proceso, nombre, desplazamiento)
+        base = gestor.obtener_segmento(proceso, nombre).base
+        print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
+    elif modo == "l":
+        fisica, valor = gestor.leer(proceso, nombre, desplazamiento)
+        print(f"Lectura en la posición física {fisica}: {valor}.")
+    else:
+        valor = int(input("Valor entero: "))
+        fisica = gestor.escribir(proceso, nombre, desplazamiento, valor)
+        print(f"Se escribió {valor} en la posición física {fisica}.")
 
 
 def terminar_proceso(gestor):
     proceso = input("Proceso que termina: ").strip().upper()
     gestor.terminar(proceso)
-    print(f"Proceso {proceso} terminado. Sus posiciones quedaron libres.")
+    print(f"Proceso {proceso} terminado.")
+
+
+def compactar_ram(gestor):
+    anterior = gestor.ram.mayor_hueco()
+    movidos = gestor.compactar()
+    actual = gestor.ram.mayor_hueco()
+    print(f"Segmentos movidos: {movidos}. Mayor hueco: {anterior} -> {actual}.")
+
+
+def intercambiar_proceso(gestor):
+    modo = input("[E]nviar a almacenamiento o [R]ecuperar: ").strip().lower()
+    if modo not in ("e", "r"):
+        raise ValueError("Elige E o R.")
+    proceso = input("Proceso: ").strip().upper()
+    if modo == "e":
+        gestor.enviar(proceso)
+        print(f"Proceso {proceso} enviado. Sus posiciones de RAM quedaron libres.")
+    else:
+        gestor.recuperar(proceso)
+        print(f"Proceso {proceso} recuperado en RAM con sus valores.")
 
 
 def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver RAM y tabla de segmentos", ver_estado),
-        "3": ("Traducir una dirección lógica", consultar_direccion),
+        "3": ("Traducir, leer o escribir una dirección lógica", consultar_direccion),
         "4": ("Terminar un proceso", terminar_proceso),
+        "5": ("Compactar RAM", compactar_ram),
+        "6": ("Enviar o recuperar un proceso", intercambiar_proceso),
     }
     while True:
         print()
@@ -81,14 +119,29 @@ def bucle(gestor):
             print(f"Operación rechazada. {error}")
 
 
+def preparar_practica(gestor):
+    tamanos = dict.fromkeys(NOMBRES_SEGMENTOS, 2)
+    for proceso in "ABC":
+        gestor.cargar(proceso, tamanos)
+    gestor.terminar("B")
+    print("Práctica: A y C están en RAM. Se liberó B.")
+    print("Prueba cargar D con 2 10 2 2. Luego compacta y vuelve a intentar.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gestor de memoria principal")
     parser.add_argument("--capacidad", type=int, default=32, help="posiciones de RAM (32 por defecto)")
+    parser.add_argument("--practica", action="store_true", help="preparar el caso de fragmentación")
     args = parser.parse_args()
     if args.capacidad < 1:
         parser.error("la capacidad debe ser positiva")
+    if args.practica and args.capacidad != 32:
+        parser.error("la práctica usa 32 posiciones de RAM")
+    gestor = Gestor(Memoria(args.capacidad))
+    if args.practica:
+        preparar_practica(gestor)
     try:
-        bucle(Gestor(Memoria(args.capacidad)))
+        bucle(gestor)
     except (EOFError, KeyboardInterrupt):
         print()
         print("Fin de la simulación.")
