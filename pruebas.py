@@ -34,3 +34,16 @@ class PruebasGestor(unittest.TestCase):
         self.gestor.terminar("A")
         self.gestor.cargar("C", tamanos())
         self.assertEqual(self.gestor.procesos["C"]["codigo"].base, 0)
+
+    def test_carga_fallida_devuelve_las_reservas_parciales(self):
+        self.gestor.cargar("A", tamanos())
+        anterior = self.gestor.ram.mapa()
+        with self.assertRaises(ValueError):
+            self.gestor.cargar("D", tamanos(datos=28))
+        self.assertEqual(self.gestor.ram.mapa(), anterior)
+        self.assertNotIn("D", self.gestor.procesos)
+
+    def test_rechaza_un_proceso_duplicado(self):
+        self.gestor.cargar("A", tamanos())
+        with self.assertRaises(ValueError):
+            self.gestor.cargar("A", tamanos(datos=4))
