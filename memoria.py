@@ -13,3 +13,6 @@ class Memoria:
 
     def libres(self):
         return self.celdas.count(None)
+
+    def mapa(self):
+        return "".join("." if celda is None else celda for celda in self.celdas)
