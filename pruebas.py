@@ -47,3 +47,9 @@ class PruebasGestor(unittest.TestCase):
         self.gestor.cargar("A", tamanos())
         with self.assertRaises(ValueError):
             self.gestor.cargar("A", tamanos(datos=4))
+
+    def test_la_misma_posicion_logica_tiene_bases_distintas(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.cargar("B", tamanos())
+        self.assertEqual(self.gestor.traducir("A", "datos", 1), 3)
+        self.assertEqual(self.gestor.traducir("B", "datos", 1), 11)
