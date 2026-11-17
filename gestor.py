@@ -56,3 +56,8 @@ class Gestor:
         if nombre not in segmentos:
             raise ValueError(f"El proceso {proceso} no tiene un segmento {nombre}.")
         return segmentos[nombre]
+
+    def traducir(self, proceso, nombre, desplazamiento):
+        """Convierte un desplazamiento válido en una dirección de RAM."""
+        segmento = self.obtener_segmento(proceso, nombre)
+        return segmento.base + desplazamiento
