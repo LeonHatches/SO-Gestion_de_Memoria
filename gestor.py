@@ -39,3 +39,14 @@ class Gestor:
                 self.ram.liberar(segmento.base, segmento.tamano)
             raise
         self.procesos[proceso] = segmentos
+
+    def obtener_proceso(self, proceso):
+        if proceso not in self.procesos:
+            raise ValueError(f"El proceso {proceso} no está en la RAM.")
+        return self.procesos[proceso]
+
+    def terminar(self, proceso):
+        segmentos = self.obtener_proceso(proceso)
+        for segmento in segmentos.values():
+            self.ram.liberar(segmento.base, segmento.tamano)
+        del self.procesos[proceso]
