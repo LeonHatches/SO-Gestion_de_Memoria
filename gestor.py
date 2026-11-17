@@ -112,3 +112,15 @@ class Gestor:
             copia[nombre] = [celda.valor for celda in celdas]
         self.terminar(proceso)
         self.intercambio[proceso] = copia
+
+    def recuperar(self, proceso):
+        if proceso not in self.intercambio:
+            raise ValueError(f"{proceso} no está en almacenamiento.")
+        copia = self.intercambio[proceso]
+        self._cargar(proceso, {nombre: len(valores) for nombre, valores in copia.items()})
+        segmentos = self.procesos[proceso]
+        for nombre, valores in copia.items():
+            base = segmentos[nombre].base
+            for desplazamiento, valor in enumerate(valores):
+                self.ram.celdas[base + desplazamiento].valor = valor
+        del self.intercambio[proceso]
