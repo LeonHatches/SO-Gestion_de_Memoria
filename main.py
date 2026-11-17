@@ -1,5 +1,7 @@
 """Menú del gestor de memoria principal."""
 
+import argparse
+
 from memoria import Memoria
 
 
@@ -36,8 +38,13 @@ def bucle(ram):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Gestor de memoria principal")
+    parser.add_argument("--capacidad", type=int, default=32, help="posiciones de RAM (32 por defecto)")
+    args = parser.parse_args()
+    if args.capacidad < 1:
+        parser.error("la capacidad debe ser positiva")
     try:
-        bucle(Memoria(32))
+        bucle(Memoria(args.capacidad))
     except (EOFError, KeyboardInterrupt):
         print()
         print("Fin de la simulación.")
