@@ -16,10 +16,11 @@ def ver_estado(gestor):
     print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
     print("Cada letra identifica un proceso.")
     if gestor.procesos:
-        print("  PID  Segmento  Base  Tamaño")
+        print("  PID  Segmento  Base  Tamaño  Rango lógico")
         for proceso, segmentos in sorted(gestor.procesos.items()):
             for nombre, segmento in segmentos.items():
-                print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  {segmento.tamano:>6}")
+                print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  "
+                      f"{segmento.tamano:>6}  0-{segmento.tamano - 1}")
     else:
         print("No hay procesos en RAM.")
 
