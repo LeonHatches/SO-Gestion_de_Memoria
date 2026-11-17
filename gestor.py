@@ -68,3 +68,10 @@ class Gestor:
         """Convierte un desplazamiento válido en una dirección de RAM."""
         segmento = self.obtener_segmento(proceso, nombre)
         return segmento.direccion(desplazamiento)
+
+    def resolver_acceso(self, proceso, nombre, desplazamiento, operacion):
+        segmento = self.obtener_segmento(proceso, nombre)
+        fisica = segmento.direccion(desplazamiento)
+        if operacion not in ("R", "W") or operacion not in segmento.permisos:
+            raise ValueError(f"{proceso}/{nombre} tiene permisos {segmento.permisos}.")
+        return fisica
