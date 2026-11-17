@@ -4,12 +4,14 @@ from dataclasses import dataclass
 from string import ascii_uppercase
 
 NOMBRES_SEGMENTOS = ("codigo", "datos", "heap", "stack")
+PERMISOS = {"codigo": "R", "datos": "RW", "heap": "RW", "stack": "RW"}
 
 
 @dataclass
 class Segmento:
     base: int
     tamano: int
+    permisos: str
 
     def direccion(self, desplazamiento):
         if type(desplazamiento) is not int or not 0 <= desplazamiento < self.tamano:
@@ -38,7 +40,7 @@ class Gestor:
                 tamano = tamanos[nombre]
                 base = self.ram.buscar_hueco(tamano)
                 self.ram.ocupar(base, tamano, proceso)
-                segmentos[nombre] = Segmento(base, tamano)
+                segmentos[nombre] = Segmento(base, tamano, PERMISOS[nombre])
         except ValueError:
             for segmento in segmentos.values():
                 self.ram.liberar(segmento.base, segmento.tamano)
