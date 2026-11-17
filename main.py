@@ -36,9 +36,11 @@ def cargar_proceso(gestor):
     print(f"Proceso {proceso} cargado.")
 
 
-def pedir_direccion():
+def pedir_direccion(gestor):
     proceso = input("Proceso: ").strip().upper()
-    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower()
+    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower().replace("ó", "o")
+    segmento = gestor.obtener_segmento(proceso, nombre)
+    print(f"{proceso}/{nombre}: rango 0-{segmento.tamano - 1}, permisos {segmento.permisos}.")
     desplazamiento = int(input("Posición lógica: "))
     return proceso, nombre, desplazamiento
 
@@ -47,7 +49,7 @@ def consultar_direccion(gestor):
     modo = input("CPU: [T]raducir, [L]eer o [E]scribir: ").strip().lower()
     if modo not in ("t", "l", "e"):
         raise ValueError("Elige T, L o E.")
-    proceso, nombre, desplazamiento = pedir_direccion()
+    proceso, nombre, desplazamiento = pedir_direccion(gestor)
     if modo == "t":
         fisica = gestor.traducir(proceso, nombre, desplazamiento)
         base = gestor.obtener_segmento(proceso, nombre).base
