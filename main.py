@@ -119,14 +119,29 @@ def bucle(gestor):
             print(f"Operación rechazada. {error}")
 
 
+def preparar_practica(gestor):
+    tamanos = dict.fromkeys(NOMBRES_SEGMENTOS, 2)
+    for proceso in "ABC":
+        gestor.cargar(proceso, tamanos)
+    gestor.terminar("B")
+    print("Práctica: A y C están en RAM. Se liberó B.")
+    print("Prueba cargar D con 2 10 2 2. Luego compacta y vuelve a intentar.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gestor de memoria principal")
     parser.add_argument("--capacidad", type=int, default=32, help="posiciones de RAM (32 por defecto)")
+    parser.add_argument("--practica", action="store_true", help="preparar el caso de fragmentación")
     args = parser.parse_args()
     if args.capacidad < 1:
         parser.error("la capacidad debe ser positiva")
+    if args.practica and args.capacidad != 32:
+        parser.error("la práctica usa 32 posiciones de RAM")
+    gestor = Gestor(Memoria(args.capacidad))
+    if args.practica:
+        preparar_practica(gestor)
     try:
-        bucle(Gestor(Memoria(args.capacidad)))
+        bucle(gestor)
     except (EOFError, KeyboardInterrupt):
         print()
         print("Fin de la simulación.")
