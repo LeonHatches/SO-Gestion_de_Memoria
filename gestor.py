@@ -50,3 +50,9 @@ class Gestor:
         for segmento in segmentos.values():
             self.ram.liberar(segmento.base, segmento.tamano)
         del self.procesos[proceso]
+
+    def obtener_segmento(self, proceso, nombre):
+        segmentos = self.obtener_proceso(proceso)
+        if nombre not in segmentos:
+            raise ValueError(f"El proceso {proceso} no tiene un segmento {nombre}.")
+        return segmentos[nombre]
