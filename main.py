@@ -24,6 +24,8 @@ def ver_estado(gestor):
                       f"{segmento.tamano:>6}  {rango:<12}  {segmento.permisos}")
     else:
         print("No hay procesos en RAM.")
+    suspendidos = ", ".join(sorted(gestor.intercambio)) or "ninguno"
+    print(f"En almacenamiento simulado: {suspendidos}.")
 
 
 def cargar_proceso(gestor):
@@ -66,7 +68,7 @@ def consultar_direccion(gestor):
 def terminar_proceso(gestor):
     proceso = input("Proceso que termina: ").strip().upper()
     gestor.terminar(proceso)
-    print(f"Proceso {proceso} terminado. Sus posiciones quedaron libres.")
+    print(f"Proceso {proceso} terminado.")
 
 
 def compactar_ram(gestor):
@@ -76,6 +78,19 @@ def compactar_ram(gestor):
     print(f"Segmentos movidos: {movidos}. Mayor hueco: {anterior} -> {actual}.")
 
 
+def intercambiar_proceso(gestor):
+    modo = input("[E]nviar a almacenamiento o [R]ecuperar: ").strip().lower()
+    if modo not in ("e", "r"):
+        raise ValueError("Elige E o R.")
+    proceso = input("Proceso: ").strip().upper()
+    if modo == "e":
+        gestor.enviar(proceso)
+        print(f"Proceso {proceso} enviado. Sus posiciones de RAM quedaron libres.")
+    else:
+        gestor.recuperar(proceso)
+        print(f"Proceso {proceso} recuperado en RAM con sus valores.")
+
+
 def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
@@ -83,6 +98,7 @@ def bucle(gestor):
         "3": ("Traducir, leer o escribir una dirección lógica", consultar_direccion),
         "4": ("Terminar un proceso", terminar_proceso),
         "5": ("Compactar RAM", compactar_ram),
+        "6": ("Enviar o recuperar un proceso", intercambiar_proceso),
     }
     while True:
         print()
