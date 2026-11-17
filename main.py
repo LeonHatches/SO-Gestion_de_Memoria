@@ -44,7 +44,8 @@ def pedir_direccion():
 def consultar_direccion(gestor):
     proceso, nombre, desplazamiento = pedir_direccion()
     fisica = gestor.traducir(proceso, nombre, desplazamiento)
-    print(f"Dirección física: {fisica}.")
+    base = gestor.obtener_segmento(proceso, nombre).base
+    print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
 
 
 def terminar_proceso(gestor):
