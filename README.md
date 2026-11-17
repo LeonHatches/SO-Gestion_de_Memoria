@@ -11,10 +11,14 @@ La opción 2 muestra el mapa y las bases de los bloques. Un punto es una
 posición libre y una letra identifica al proceso que ocupa esa posición.
 La opción 4 libera todos los segmentos de un proceso.
 
+La opción 3 simula una solicitud de la CPU. Carga A con tamaños 2 2 2 2,
+elige el segmento datos y pide la posición lógica 1. La base de datos
+es 2 y la dirección física que calcula el menú es 3.
+
 El espacio empieza con 32 posiciones y se puede cambiar con:
 
     python main.py --capacidad 16
 
-Para verificar la RAM y la carga de procesos:
+Para verificar la RAM, la carga y la traducción:
 
     python -m unittest pruebas -v
