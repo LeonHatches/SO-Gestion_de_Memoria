@@ -34,6 +34,19 @@ def cargar_proceso(gestor):
     print(f"Proceso {proceso} cargado.")
 
 
+def pedir_direccion():
+    proceso = input("Proceso: ").strip().upper()
+    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower()
+    desplazamiento = int(input("Posición lógica: "))
+    return proceso, nombre, desplazamiento
+
+
+def consultar_direccion(gestor):
+    proceso, nombre, desplazamiento = pedir_direccion()
+    fisica = gestor.traducir(proceso, nombre, desplazamiento)
+    print(f"Dirección física: {fisica}.")
+
+
 def terminar_proceso(gestor):
     proceso = input("Proceso que termina: ").strip().upper()
     gestor.terminar(proceso)
@@ -44,6 +57,7 @@ def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver RAM y tabla de segmentos", ver_estado),
+        "3": ("Traducir una dirección lógica", consultar_direccion),
         "4": ("Terminar un proceso", terminar_proceso),
     }
     while True:
