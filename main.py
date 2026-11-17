@@ -43,10 +43,21 @@ def pedir_direccion():
 
 
 def consultar_direccion(gestor):
+    modo = input("CPU: [T]raducir, [L]eer o [E]scribir: ").strip().lower()
+    if modo not in ("t", "l", "e"):
+        raise ValueError("Elige T, L o E.")
     proceso, nombre, desplazamiento = pedir_direccion()
-    fisica = gestor.traducir(proceso, nombre, desplazamiento)
-    base = gestor.obtener_segmento(proceso, nombre).base
-    print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
+    if modo == "t":
+        fisica = gestor.traducir(proceso, nombre, desplazamiento)
+        base = gestor.obtener_segmento(proceso, nombre).base
+        print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
+    elif modo == "l":
+        fisica, valor = gestor.leer(proceso, nombre, desplazamiento)
+        print(f"Lectura en la posición física {fisica}: {valor}.")
+    else:
+        valor = int(input("Valor entero: "))
+        fisica = gestor.escribir(proceso, nombre, desplazamiento, valor)
+        print(f"Se escribió {valor} en la posición física {fisica}.")
 
 
 def terminar_proceso(gestor):
@@ -59,7 +70,7 @@ def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver RAM y tabla de segmentos", ver_estado),
-        "3": ("Traducir una dirección lógica", consultar_direccion),
+        "3": ("Traducir, leer o escribir una dirección lógica", consultar_direccion),
         "4": ("Terminar un proceso", terminar_proceso),
     }
     while True:
