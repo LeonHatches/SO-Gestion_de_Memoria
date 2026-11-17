@@ -26,10 +26,17 @@ def cargar_proceso(gestor):
     print(f"Proceso {proceso} cargado.")
 
 
+def terminar_proceso(gestor):
+    proceso = input("Proceso que termina: ").strip().upper()
+    gestor.terminar(proceso)
+    print(f"Proceso {proceso} terminado. Sus posiciones quedaron libres.")
+
+
 def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver el mapa de RAM", ver_estado),
+        "4": ("Terminar un proceso", terminar_proceso),
     }
     while True:
         print()
