@@ -2,10 +2,12 @@
 
 import argparse
 
+from gestor import Gestor, NOMBRES_SEGMENTOS
 from memoria import Memoria
 
 
-def ver_estado(ram):
+def ver_estado(gestor):
+    ram = gestor.ram
     mapa = ram.mapa()
     print("Mapa de RAM (un punto por posición libre)")
     for inicio in range(0, ram.capacidad, 16):
@@ -14,8 +16,19 @@ def ver_estado(ram):
     print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
 
 
-def bucle(ram):
+def cargar_proceso(gestor):
+    proceso = input("Proceso (A-Z): ").strip().upper()
+    entrada = input("Tamaños de codigo datos heap stack [2 2 2 2]: ").split()
+    tamanos = [int(valor) for valor in entrada] if entrada else [2] * 4
+    if len(tamanos) != len(NOMBRES_SEGMENTOS):
+        raise ValueError("Escribe cuatro tamaños separados por espacios.")
+    gestor.cargar(proceso, dict(zip(NOMBRES_SEGMENTOS, tamanos)))
+    print(f"Proceso {proceso} cargado.")
+
+
+def bucle(gestor):
     opciones = {
+        "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver el mapa de RAM", ver_estado),
     }
     while True:
@@ -32,7 +45,7 @@ def bucle(ram):
             continue
         _, accion = opciones[opcion]
         try:
-            accion(ram)
+            accion(gestor)
         except ValueError as error:
             print(f"Operación rechazada. {error}")
 
@@ -44,7 +57,7 @@ def main():
     if args.capacidad < 1:
         parser.error("la capacidad debe ser positiva")
     try:
-        bucle(Memoria(args.capacidad))
+        bucle(Gestor(Memoria(args.capacidad)))
     except (EOFError, KeyboardInterrupt):
         print()
         print("Fin de la simulación.")
