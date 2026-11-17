@@ -69,3 +69,10 @@ class PruebasGestor(unittest.TestCase):
             with self.subTest(posicion=invalida):
                 with self.assertRaises(ValueError):
                     self.gestor.traducir("A", "datos", invalida)
+
+    def test_codigo_es_de_solo_lectura(self):
+        self.gestor.cargar("A", tamanos())
+        self.assertEqual(self.gestor.leer("A", "codigo", 0), (0, 0))
+        with self.assertRaisesRegex(ValueError, "permisos R"):
+            self.gestor.escribir("A", "codigo", 0, 61)
+        self.assertEqual(self.gestor.leer("A", "codigo", 0), (0, 0))
