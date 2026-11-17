@@ -23,8 +23,14 @@ class Gestor:
     def __init__(self, ram):
         self.ram = ram
         self.procesos = {}
+        self.intercambio = {}
 
     def cargar(self, proceso, tamanos):
+        if proceso in self.intercambio:
+            raise ValueError(f"{proceso} está en almacenamiento. Usa la opción de recuperar.")
+        self._cargar(proceso, tamanos)
+
+    def _cargar(self, proceso, tamanos):
         if len(proceso) != 1 or proceso not in ascii_uppercase:
             raise ValueError("Identifica el proceso con una letra entre A y Z.")
         if proceso in self.procesos:
@@ -53,6 +59,9 @@ class Gestor:
         return self.procesos[proceso]
 
     def terminar(self, proceso):
+        if proceso in self.intercambio:
+            del self.intercambio[proceso]
+            return
         segmentos = self.obtener_proceso(proceso)
         for segmento in segmentos.values():
             self.ram.liberar(segmento.base, segmento.tamano)
@@ -94,3 +103,12 @@ class Gestor:
         for segmento in segmentos:
             segmento.base = nuevas_bases[segmento.base]
         return sum(antes != despues for antes, despues in nuevas_bases.items())
+
+    def enviar(self, proceso):
+        segmentos = self.obtener_proceso(proceso)
+        copia = {}
+        for nombre, segmento in segmentos.items():
+            celdas = self.ram.celdas[segmento.base:segmento.base + segmento.tamano]
+            copia[nombre] = [celda.valor for celda in celdas]
+        self.terminar(proceso)
+        self.intercambio[proceso] = copia
