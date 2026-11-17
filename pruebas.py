@@ -1,5 +1,6 @@
 import unittest
 
+from gestor import Gestor, NOMBRES_SEGMENTOS
 from memoria import Memoria
 
 
@@ -16,3 +17,20 @@ class PruebasMemoria(unittest.TestCase):
     def test_rechaza_una_capacidad_invalida(self):
         with self.assertRaises(ValueError):
             Memoria(0)
+
+
+def tamanos(codigo=2, datos=2, heap=2, stack=2):
+    return dict(zip(NOMBRES_SEGMENTOS, (codigo, datos, heap, stack)))
+
+
+class PruebasGestor(unittest.TestCase):
+    def setUp(self):
+        self.gestor = Gestor(Memoria(32))
+
+    def test_carga_cuatro_segmentos_y_reusa_el_hueco(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.cargar("B", tamanos())
+        self.assertEqual(self.gestor.ram.mapa(), "A" * 8 + "B" * 8 + "." * 16)
+        self.gestor.terminar("A")
+        self.gestor.cargar("C", tamanos())
+        self.assertEqual(self.gestor.procesos["C"]["codigo"].base, 0)
