@@ -14,6 +14,14 @@ def ver_estado(gestor):
         fin = min(inicio + 16, ram.capacidad)
         print(f"  {inicio:02d}-{fin - 1:02d}  {mapa[inicio:fin]}")
     print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
+    print("Cada letra identifica un proceso.")
+    if gestor.procesos:
+        print("  PID  Segmento  Base  Tamaño")
+        for proceso, segmentos in sorted(gestor.procesos.items()):
+            for nombre, segmento in segmentos.items():
+                print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  {segmento.tamano:>6}")
+    else:
+        print("No hay procesos en RAM.")
 
 
 def cargar_proceso(gestor):
@@ -35,7 +43,7 @@ def terminar_proceso(gestor):
 def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
-        "2": ("Ver el mapa de RAM", ver_estado),
+        "2": ("Ver RAM y tabla de segmentos", ver_estado),
         "4": ("Terminar un proceso", terminar_proceso),
     }
     while True:
