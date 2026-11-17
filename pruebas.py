@@ -47,3 +47,25 @@ class PruebasGestor(unittest.TestCase):
         self.gestor.cargar("A", tamanos())
         with self.assertRaises(ValueError):
             self.gestor.cargar("A", tamanos(datos=4))
+
+    def test_la_misma_posicion_logica_tiene_bases_distintas(self):
+        self.gestor.cargar("A", tamanos())
+        self.gestor.cargar("B", tamanos())
+        self.assertEqual(self.gestor.traducir("A", "datos", 1), 3)
+        self.assertEqual(self.gestor.traducir("B", "datos", 1), 11)
+
+    def test_proceso_y_segmento_deben_existir(self):
+        self.gestor.cargar("A", tamanos())
+        with self.assertRaises(ValueError):
+            self.gestor.traducir("A", "otro", 0)
+        with self.assertRaises(ValueError):
+            self.gestor.traducir("B", "datos", 0)
+
+    def test_limites_de_un_segmento_de_dos_posiciones(self):
+        self.gestor.cargar("A", tamanos())
+        self.assertEqual(self.gestor.traducir("A", "datos", 0), 2)
+        self.assertEqual(self.gestor.traducir("A", "datos", 1), 3)
+        for invalida in (-1, 2, 1.5):
+            with self.subTest(posicion=invalida):
+                with self.assertRaises(ValueError):
+                    self.gestor.traducir("A", "datos", invalida)

@@ -16,10 +16,11 @@ def ver_estado(gestor):
     print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
     print("Cada letra identifica un proceso.")
     if gestor.procesos:
-        print("  PID  Segmento  Base  Tamaño")
+        print("  PID  Segmento  Base  Tamaño  Rango lógico")
         for proceso, segmentos in sorted(gestor.procesos.items()):
             for nombre, segmento in segmentos.items():
-                print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  {segmento.tamano:>6}")
+                print(f"  {proceso:>3}  {nombre:<8}  {segmento.base:>4}  "
+                      f"{segmento.tamano:>6}  0-{segmento.tamano - 1}")
     else:
         print("No hay procesos en RAM.")
 
@@ -34,6 +35,20 @@ def cargar_proceso(gestor):
     print(f"Proceso {proceso} cargado.")
 
 
+def pedir_direccion():
+    proceso = input("Proceso: ").strip().upper()
+    nombre = input("Segmento (codigo/datos/heap/stack): ").strip().lower()
+    desplazamiento = int(input("Posición lógica: "))
+    return proceso, nombre, desplazamiento
+
+
+def consultar_direccion(gestor):
+    proceso, nombre, desplazamiento = pedir_direccion()
+    fisica = gestor.traducir(proceso, nombre, desplazamiento)
+    base = gestor.obtener_segmento(proceso, nombre).base
+    print(f"{proceso}/{nombre}: base {base} + posición {desplazamiento} = física {fisica}.")
+
+
 def terminar_proceso(gestor):
     proceso = input("Proceso que termina: ").strip().upper()
     gestor.terminar(proceso)
@@ -44,6 +59,7 @@ def bucle(gestor):
     opciones = {
         "1": ("Cargar un proceso", cargar_proceso),
         "2": ("Ver RAM y tabla de segmentos", ver_estado),
+        "3": ("Traducir una dirección lógica", consultar_direccion),
         "4": ("Terminar un proceso", terminar_proceso),
     }
     while True:

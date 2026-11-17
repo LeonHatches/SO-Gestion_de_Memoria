@@ -11,6 +11,11 @@ class Segmento:
     base: int
     tamano: int
 
+    def direccion(self, desplazamiento):
+        if type(desplazamiento) is not int or not 0 <= desplazamiento < self.tamano:
+            raise ValueError(f"Posición fuera del segmento. Usa 0 a {self.tamano - 1}.")
+        return self.base + desplazamiento
+
 
 class Gestor:
     def __init__(self, ram):
@@ -50,3 +55,14 @@ class Gestor:
         for segmento in segmentos.values():
             self.ram.liberar(segmento.base, segmento.tamano)
         del self.procesos[proceso]
+
+    def obtener_segmento(self, proceso, nombre):
+        segmentos = self.obtener_proceso(proceso)
+        if nombre not in segmentos:
+            raise ValueError(f"El proceso {proceso} no tiene un segmento {nombre}.")
+        return segmentos[nombre]
+
+    def traducir(self, proceso, nombre, desplazamiento):
+        """Convierte un desplazamiento válido en una dirección de RAM."""
+        segmento = self.obtener_segmento(proceso, nombre)
+        return segmento.direccion(desplazamiento)
