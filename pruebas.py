@@ -60,3 +60,12 @@ class PruebasGestor(unittest.TestCase):
             self.gestor.traducir("A", "otro", 0)
         with self.assertRaises(ValueError):
             self.gestor.traducir("B", "datos", 0)
+
+    def test_limites_de_un_segmento_de_dos_posiciones(self):
+        self.gestor.cargar("A", tamanos())
+        self.assertEqual(self.gestor.traducir("A", "datos", 0), 2)
+        self.assertEqual(self.gestor.traducir("A", "datos", 1), 3)
+        for invalida in (-1, 2, 1.5):
+            with self.subTest(posicion=invalida):
+                with self.assertRaises(ValueError):
+                    self.gestor.traducir("A", "datos", invalida)
