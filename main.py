@@ -4,8 +4,12 @@ from memoria import Memoria
 
 
 def ver_estado(ram):
-    print("Mapa de RAM:", ram.mapa())
-    print(f"Posiciones libres: {ram.libres()} de {ram.capacidad}.")
+    mapa = ram.mapa()
+    print("Mapa de RAM (un punto por posición libre)")
+    for inicio in range(0, ram.capacidad, 16):
+        fin = min(inicio + 16, ram.capacidad)
+        print(f"  {inicio:02d}-{fin - 1:02d}  {mapa[inicio:fin]}")
+    print(f"Libres: {ram.libres()} de {ram.capacidad}. Mayor hueco: {ram.mayor_hueco()}.")
 
 
 def bucle(ram):
