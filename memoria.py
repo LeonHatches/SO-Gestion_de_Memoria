@@ -27,3 +27,13 @@ class Memoria:
             else:
                 actual = 0
         return mayor
+
+    def buscar_hueco(self, tamano):
+        if tamano <= 0:
+            raise ValueError("El tamaño debe ser positivo.")
+        libres = 0
+        for indice, celda in enumerate(self.celdas):
+            libres = libres + 1 if celda is None else 0
+            if libres == tamano:
+                return indice - tamano + 1
+        raise ValueError(f"No hay un hueco contiguo de {tamano} posiciones.")
